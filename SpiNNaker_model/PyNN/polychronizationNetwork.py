@@ -71,7 +71,6 @@ NUM_EXCITATORY_NEURONS  = 800
 NUM_INHIBITORY_NEURONS  = 200
 NUM_NEURONS             = NUM_EXCITATORY_NEURONS + NUM_INHIBITORY_NEURONS
 SYNAPSES_PER_NEURON     = 100
-MAX_SYNAPTIC_STRENGTH   = 10.0
 CURRENT_INJECTION_VALUE = 20.0
 
 
@@ -261,6 +260,7 @@ for cycle in range( SIM_CYCLES ):
 
         plt.pause(0.1)
 
+    # write firings to file
     firings = list()
     for i in range( SIM_TIME_SINGLE ):
         firings.append([])
@@ -275,7 +275,6 @@ for cycle in range( SIM_CYCLES ):
             firingTime = int(spikesInhPop.segments[0].spiketrains[neuron][spikeTimeIdx]) - simStartTime
             firings[firingTime].append( neuron + NUM_EXCITATORY_NEURONS )
 
-    # spike time and neuron
     for i in range( SIM_TIME_SINGLE ):
         simCycle = str( '{:06d}'.format(cycle) )
         tickInCycle = str('{:06d}'.format(i))
