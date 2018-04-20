@@ -47,8 +47,6 @@ NEURON_PARAMS_RS = { 'a':          0.02
                    , 'd':          8.0
                    , 'v_init':   -75.0
                    , 'u_init':     0.0
-                   , 'tau_syn_E':  0.01
-                   , 'tau_syn_I':  0.01
                    , 'i_offset':   5.0
                    }
 
@@ -59,8 +57,6 @@ NEURON_PARAMS_FS = { 'a':          0.1
                    , 'd':          2.0
                    , 'v_init':   -75.0
                    , 'u_init':     0.0
-                   , 'tau_syn_E':  0.01
-                   , 'tau_syn_I':  0.01
                    , 'i_offset':   5.0
                    }
 
