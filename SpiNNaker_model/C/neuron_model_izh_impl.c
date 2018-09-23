@@ -2,10 +2,10 @@
 // = Set up desired ODE solver implementation
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-#define IMPL01  false    // original SpiNNaker ESR implementation
+#define IMPL01  false    // original SpiNNaker ESR implementation (corresponds to Iteration I)
 #define IMPL02  false    // original Izhikevich implementation
-#define IMPL03  false    // fixed step size (h=1/16) forward Euler, precise threshold detection
-#define IMPL04  true     // fixed step size (h=1/16) forward Euler, precise threshold detection, FP conversion
+#define IMPL03  false    // fixed-step size (h=1/16) symplectic forward Euler, precise threshold detection
+#define IMPL04  true     // fixed-step size (h=1/16) symplectic forward Euler, precise threshold detection, FP conversion (corresponds to Iteration III)
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -48,7 +48,7 @@ static inline void _rk2_kernel_midpoint(REAL h, neuron_pointer_t neuron,
 #endif
 
 #if( IMPL02 )
-// h = 1.0, i.e., simulation timestep must be set to 1.0 !
+// h = 1.0, i.e., simulation time-step must be set to 1.0 !
 static inline void _originalIzhikevich( REAL h, neuron_pointer_t neuron,
                                         REAL input_this_timestep) {
    REAL v = neuron->V;
@@ -66,7 +66,7 @@ static inline void _originalIzhikevich( REAL h, neuron_pointer_t neuron,
 #endif
 
 #if( IMPL03 )
-// h = 1.0, i.e., simulation timestep must be set to 1.0 !
+// h = 1.0, i.e., simulation time-step must be set to 1.0 !
 static inline void _fixedStepSizeEuler( REAL h, neuron_pointer_t neuron,
                                         REAL input_this_timestep) {
    #define THRESHOLD_DETECTED  1024.0k      // some high value above threshold to trigger spike event
@@ -108,7 +108,7 @@ static inline void _fixedStepSizeEuler( REAL h, neuron_pointer_t neuron,
 #endif
 
 #if( IMPL04 )
-// h = 1.0, i.e., simulation timestep must be set to 1.0 !
+// h = 1.0, i.e., simulation time-step must be set to 1.0 !
 static inline void _fixedStepSizeEulerWithFPConv( REAL h, neuron_pointer_t neuron,
                                                   REAL input_this_timestep) {
    #define THRESHOLD_DETECTED  1024.0k      // some high value above threshold to trigger spike event
