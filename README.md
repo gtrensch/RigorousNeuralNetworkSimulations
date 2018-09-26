@@ -2,4 +2,6 @@ These are the C/C++ source files and PyNN scripts developed as part of a study t
 
 **STATUS**: The first release for this source code has been published on Zenodo: 
 
-Ver. 1.0: [![DOI](https://zenodo.org/badge/126645019.svg)](https://zenodo.org/badge/latestdoi/126645019)
+Ver. 1.0: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1435026.svg)](https://doi.org/10.5281/zenodo.1435026)
+
+Ver. 2.0  [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1435831.svg)](https://doi.org/10.5281/zenodo.1435831)
