@@ -51,8 +51,9 @@
 // =   It has been modified to be able to run with the refined ODE solver to
 // =   test for the number of polychronous groups.
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-#define ODE_SOLVER_REFINEMENT      true
-#define ODE_SOLVER_STEPS           (int)(16)
+// #define ODE_SOLVER_REFINEMENT   false        // corresponds to Iteration I, Trensch et al., Gutzen et al.        
 
+#define ODE_SOLVER_REFINEMENT      true         // corresponds to Iteration II and III, Trensch et al., Gutzen et al.        
+#define ODE_SOLVER_STEPS           (int)(16)
 
 #endif   // __PARAMS_H__
