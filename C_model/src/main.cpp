@@ -137,7 +137,7 @@ int main() {
 
 #if( ODE_SOLVER_REFINEMENT )
       for( int n = 0; n < NUM_TOTAL_NEURONS; ++n ) {
-        if( spike[n] > 0 ) {                                                         // Does neuron n has fired?
+        if( spike[n] > 0 ) {                                                         // Does neuron n have fired?
 
           if( spike[n] > 1 ) printf( "[INFO]  More than 1 spike in simulation interval.\n" );
           spike[n] = 0;
@@ -163,7 +163,7 @@ int main() {
       }
 #else
       for( int n= 0; n < NUM_TOTAL_NEURONS; ++n ) {
-        if( v[n] >= RS_FS_THR ) {                                                    // Does neuron n has fired?
+        if( v[n] >= RS_FS_THR ) {                                                    // Does neuron n have fired?
 
           v[n] = RS_FS_C;                                                            // threshold dynamics
           u[n] += d[n];
