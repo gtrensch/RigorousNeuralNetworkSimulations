@@ -31,7 +31,7 @@
 #
 #  Prerequisites:
 #  - NEST 2.20.1
-#    The PyNEST script was developed using NEST version 2.20.1.
+#    The PyNEST script was developed using NEST version 2.20.1. (https://github.com/nest/nest-simulator/tree/v2.20.1)
 #    NEST was built using the following CMake options:
 #    cmake -DCMAKE_INSTALL_PREFIX=$PWD/INSTALL \
 #          -Dwith-python=3 \
@@ -47,7 +47,7 @@
 #           ../../nest-simulator
 #  - To achieve numerical accuracy while allowing to communication spike events in an one milliseconds interval,
 #    the Izhikevich model implementation was adapted to progress neuron model dynamics in h = 0.1ms steps.
-#    The source code modification applied to https://github.com/nest/nest-simulator/blob/v2.20.1/models/izhikevich.cpp
+#    The source code modification that needs to be applied to https://github.com/nest/nest-simulator/blob/v2.20.1/models/izhikevich.cpp
 #    is shown below.
 #
 #    void nest::izhikevich::update( Time const& origin, const long from, const long to ) {
