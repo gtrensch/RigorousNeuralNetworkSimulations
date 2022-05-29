@@ -9,6 +9,10 @@ This repository contains the C/C++ source codes, PyNN and PyNEST scripts develop
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1435026.svg)](https://doi.org/10.5281/zenodo.1435026) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1435831.svg)](https://doi.org/10.5281/zenodo.1435831)
 
+*Trensch G and Morrison A (2022) A System-on-Chip Based Hybrid Neuromorphic Compute Node Architecture for Reproducible Hyper-Real-Time Simulations of Spiking Neural Networks. Front. Neuroinform. 16:884033.doi: 10.3389/fninf.2022.884033
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6591552.svg)](https://doi.org/10.5281/zenodo.6591552)
+
 ## Codes ##
 
 + Console application to evaluate different ODE solver strategies for solving the Izhikevich neuron model dynamics. ([source](https://github.com/gtrensch/RigorousNeuralNetworkSimulations/tree/master/Evaluate_ODE_solver_implementations/src))
