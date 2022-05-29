@@ -3,9 +3,7 @@
 /*
  *  params.h
  *
- *  This file is part of the refactored Izhikevich polychronization model application.
- *
- *  Copyright (C) 2018, Author: G. Trensch
+ *  Copyright (C) 2018, G. Trensch, Forschungszentrum Jülich, JSC, Simulation & Data Laboratory Neuroscience
  *
  *  The refactored Izhikevich polychronization model application is free software:
  *  you can redistribute it and/or modify
@@ -24,7 +22,7 @@
  */
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-// =   S I M U L A T I O N   S E T U P
+// =   S I M U L A T I O N   S E T U P S
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 #include "params_create_5_selected_states.h"
 // #include "params_simulate_selected_state_1.h"
@@ -38,22 +36,30 @@
 // =   S O U R C E   C O D E   V E R S I O N   A N D   D E B U G
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 #define __DEBUG__                  false        // print connection, weight and delay matrix
-#define __RUN_REFACTORED_VERSION__ true         // run the refactored version of poly_spnet.cpp
-                                                // available for download at
-                                                // https://www.izhikevich.org/publications/spnet.htm
-                                                // set to false to run the original version
-#define LOG_MIN_MAX_V_U            true
+#define __RUN_REFACTORED_VERSION__ true         // run the refactored (i.e., this) version of poly_spnet.cpp
+                                                // set to false to run the original version from https://www.izhikevich.org/publications/spnet.htm
+#define LOG_MIN_MAX_V_U            false
+#define REPORT_ON_MULTIPLE_SPIKES  false
+#define RECORD_SPIKE_DATA          true
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 // =   O D E   S O L V E R   P A R A M E T E R S
 // =
-// =   The parameters do also apply to the poly_spnet.cpp source.
-// =   It has been modified to be able to run with the refined ODE solver to
+// =   The parameters also apply to the poly_spnet.cpp source.
+// =   It has been modified to be able to run with the refined ODE solver and
 // =   test for the number of polychronous groups.
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-// #define ODE_SOLVER_REFINEMENT   false        // corresponds to Iteration I, Trensch et al., Gutzen et al.        
+#define ODE_SOLVER_REFINEMENT      true
+#define ODE_SOLVER_NOT_SYMPLECTIC  true
+#define ODE_SOLVER_STEPS           (int)(10)
 
-#define ODE_SOLVER_REFINEMENT      true         // corresponds to Iteration II and III, Trensch et al., Gutzen et al.        
-#define ODE_SOLVER_STEPS           (int)(16)
+// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// =   N E T W O R K   G E N E R A T I O N   P A R A M E T E R S
+// =
+// =   These parameters can be set to create a network with a better balanced number of
+// =   outgoing connections.
+// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+#define BALANCED_OUTGOING_CONNS    false
+#define LIMIT_OUTGOING_CONNS       (int)(107)
 
 #endif   // __PARAMS_H__

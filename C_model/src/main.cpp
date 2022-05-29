@@ -1,12 +1,7 @@
 /*
  *  main.cpp
  *
- *  This file is part of the refactored Izhikevich polychronization model application.
- *
- *  This source code is based on the poly_spnet.cpp and spnet.cpp source code available at
- *  https://www.izhikevich.org/publications/spnet.htm.
- *
- *  Copyright (C) 2018, Author: G. Trensch
+ *  Copyright (C) 2018, G. Trensch, Forschungszentrum Jülich, JSC, Simulation & Data Laboratory Neuroscience
  *
  *  The refactored Izhikevich polychronization model application is free software:
  *  you can redistribute it and/or modify
@@ -24,6 +19,18 @@
  *
  */
 
+// + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
+// Refactored version of the two-population network described in [2]. This source code is based on the poly_spnet.cpp
+// and spnet.cpp source code available online at: https://www.izhikevich.org/publications/spnet.htm.
+//
+// References:
+//
+// [1] Izhikevich, E. M. (2003). Simple model of spiking neurons. Trans. Neur. Netw. 14, 1569–1572.
+//     doi:10.1109/TNN.2003.820440
+// [2] Izhikevich, E. M. (2006). Polychronization: Computation with spikes. Neural Computation, 18:245–282.
+//
+// + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
+
 #include "params.h"
 
 #if( __RUN_REFACTORED_VERSION__ )
@@ -32,9 +39,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstring>
+#include <chrono>
+#include <stdio.h>
+#include <iostream>
 
 #include "globals.h"
 #include "utils.h"
+
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 // =   C H E C K   P A R A M E T E R   S E T T I N G S
@@ -87,6 +98,7 @@
   #error OUTFILE_FIRINGS not defined!
 #endif
 
+
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 // =   F O R W A R D   D E C L A R A T I O N S
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -94,11 +106,13 @@ void InitializeNetwork();
 void InitializeSimulation();
 void FinalizeSimulation();
 
+
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 // =   M A I N   E N T R Y
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 int main() {
-
+  unsigned long int iterCount  = 0;
+  unsigned long int spikeCount = 0;
   printf( "\n\n%s\n\n", PARAM_INFO_STRING );
 
   printf( "[INFO]  Running simulation for %d seconds\n", SIM_TIME );
@@ -111,6 +125,8 @@ int main() {
 
   InitializeSimulation();
   InitializeNetwork();
+
+  std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
 
   for( int simTimeSecond = 0; simTimeSecond < SIM_TIME; ++simTimeSecond ) {          // simulation loop [seconds]
     for( int t = 0; t < 1000; ++t ) {                                                // simulation loop [milliseconds]
@@ -137,9 +153,11 @@ int main() {
 
 #if( ODE_SOLVER_REFINEMENT )
       for( int n = 0; n < NUM_TOTAL_NEURONS; ++n ) {
-        if( spike[n] > 0 ) {                                                         // Does neuron n have fired?
+        if( spike[n] > 0 ) {                                                         // Did neuron n fire?
 
-          if( spike[n] > 1 ) printf( "[INFO]  More than 1 spike in simulation interval.\n" );
+#if( REPORT_ON_MULTIPLE_SPIKES )
+          if( spike[n] > 1 ) printf( "[INFO]  Multiple spikes in simulation time step detected.\n" );
+#endif
           spike[n] = 0;
 
           LTP[n][t + MAX_SYNAPSE_DELAY] = 0.1;
@@ -152,18 +170,18 @@ int main() {
             *listOfPointersToSynapticWeights_derivatives[n][idx] += LTP[preSynNeuron][t + MAX_SYNAPSE_DELAY - preSynNeuron_correspondingDelay - 1];
           }
 
-          firings[numFirings][TIME] = t;
-          firings[numFirings][NEURON] = n;
+          firings[numFirings][IDX_TIME] = t;
+          firings[numFirings][IDX_NEURON] = n;
           numFirings++;
           if( numFirings == MAX_NUM_FIRINGS) {
-            printf( "[WARNING]  Two many spikes at t = %d (ignoring all)\n", t );
+            printf( "[WARNING]  Too many spikes at t = %d (ignoring all)\n", t );
             numFirings = 1;
           }
         }
       }
 #else
       for( int n= 0; n < NUM_TOTAL_NEURONS; ++n ) {
-        if( v[n] >= RS_FS_THR ) {                                                    // Does neuron n have fired?
+        if( v[n] >= RS_FS_THR ) {                                                    // Did neuron n fire?
 
           v[n] = RS_FS_C;                                                            // threshold dynamics
           u[n] += d[n];
@@ -178,7 +196,7 @@ int main() {
             *listOfPointersToSynapticWeights_derivatives[n][idx] += LTP[preSynNeuron][t + MAX_SYNAPSE_DELAY - preSynNeuron_correspondingDelay - 1];
           }
 
-          firings[numFirings][TIME]   = t;
+          firings[numFirings][IDX_TIME]   = t;
           firings[numFirings][NEURON] = n;
           numFirings++;
           if( numFirings == MAX_NUM_FIRINGS ) {
@@ -189,8 +207,8 @@ int main() {
       }
 #endif
 
-      //  Go back through firings as far as MAX_SYNAPSE_DELAY lasts. Calculate I_ext for the next time step.
-      //  Take the delays of the synapses into account. I_ext applies in the next simulation step.
+      //  Go backwards through firings as far as MAX_SYNAPSE_DELAY lasts. Calculate I_ext for the next time step.
+      //  Take the delays of the synapses into account. I_ext applies to the next simulation step.
       //
       //                          |        |                    |
       //     |                          |     |  |  |     |  |  |  <-- spikes
@@ -201,11 +219,11 @@ int main() {
       //                                         |              |
       //                                         +--------------+  MAX_SYNAPSE_DELAY (e.g., 5)
 
-      int idx = numFirings - 1;                                                      // array index starts with 0
-      while( t - firings[idx][TIME] < MAX_SYNAPSE_DELAY ) {
+      long int idx = numFirings - 1;                                                      // array index starts with 0
+      while( t - firings[idx][IDX_TIME] < MAX_SYNAPSE_DELAY ) {
 
-        int neuronFired = firings[idx][NEURON];
-        int timeSinceNeuronFired = t - firings[idx][TIME];
+        int neuronFired = firings[idx][IDX_NEURON];
+        int timeSinceNeuronFired = t - firings[idx][IDX_TIME];
         int numEntriesOfDelay = numEntriesPerDelay[neuronFired][timeSinceNeuronFired];
 
         for( int i = 0; i < numEntriesOfDelay; ++i ) {
@@ -228,8 +246,17 @@ int main() {
 
 #if( ODE_SOLVER_REFINEMENT )
         for( int intCycles = 0; intCycles < ODE_SOLVER_STEPS; ++intCycles ) {
-          v[n] += (1.0 / ODE_SOLVER_STEPS) * ((0.04 * v[n] + 5) * v[n] + 140 - u[n] + I_ext[n]);
+
+  #if( ODE_SOLVER_NOT_SYMPLECTIC )
+          double v_old = v[n];
+          v[n] += (1.0 / ODE_SOLVER_STEPS) * ((0.04 * v[n] + 5) * v[n] + 140 - u[n] + I_ext[n] + i_offs[n]);
+          u[n] += (1.0 / ODE_SOLVER_STEPS) * (a[n] * (RS_FS_B * v_old - u[n]));
+          ++iterCount;
+  #else
+          v[n] += (1.0 / ODE_SOLVER_STEPS) * ((0.04 * v[n] + 5) * v[n] + 140 - u[n] + I_ext[n] + i_offs[n]);
           u[n] += (1.0 / ODE_SOLVER_STEPS) * (a[n] * (RS_FS_B * v[n] - u[n]));
+          ++iterCount;
+  #endif
 
   #if( LOG_MIN_MAX_V_U )
           // log min and max values of v(t) and u(t)
@@ -239,16 +266,17 @@ int main() {
           if( u[n] < u_min ) u_min = u[n];
   #endif
 
-          // threshold detection for exact integration
+          // threshold detection within loop for exact detection and precise spike timing
           if( v[n] >= 30.0 ) {
             v[n] = RS_FS_C;
             u[n] += d[n];
             spike[n]++;                                                              // remember the spike event, which is aligned to next grid point
+            spikeCount++;
           }
         }
-#else     // original implementation
-        v[n] += 0.5 * ((0.04 * v[n] + 5) * v[n] + 140 - u[n] + I_ext[n]);            // for numerical stability
-        v[n] += 0.5 * ((0.04 * v[n] + 5) * v[n] + 140 - u[n] + I_ext[n]);            // time step is 0.5 ms
+#else   // original Izhikevich implementation using a 1 ms integration time step
+        v[n] += 0.5 * ((0.04 * v[n] + 5) * v[n] + 140 - u[n] + I_ext[n] + i_offs[n]);    // for numerical stability
+        v[n] += 0.5 * ((0.04 * v[n] + 5) * v[n] + 140 - u[n] + I_ext[n] + i_offs[n]);    // time step is 0.5 ms, see [1]
         u[n] += a[n] * (RS_FS_B * v[n] - u[n]);
 
         #if( LOG_MIN_MAX_V_U )                                                       // log min and max values of v(t) and u(t)
@@ -262,25 +290,28 @@ int main() {
         LTP[n][t + MAX_SYNAPSE_DELAY + 1] = 0.95 * LTP[n][t + MAX_SYNAPSE_DELAY];
         LTD[n] *= 0.95;
       }
-    }                                                                                // end of simulation loop [milliseconds]
+    }                                            // end of simulation loop [milliseconds]
+
+    // printf("aver. firing rate = %f \n", (double)numFirings / (double)NUM_TOTAL_NEURONS);
 
     // every minute: report on the average firing rate of the excitatory and inhibitory population
     if( simTimeSecond > 0 && (simTimeSecond + 1) % 60 == 0 ) {
-      int spikesTotalExcitatory = 0;
-      int spikesTotalInhibitory = 0;
-      for( int idx = 0; idx < numFirings; ++idx ) {
-        if( firings[idx][NEURON] < NUM_EXCITATORY_NEURONS) {
+      unsigned long int spikesTotalExcitatory = 0;
+      unsigned long int spikesTotalInhibitory = 0;
+      for( unsigned long
+      int idx = 0; idx < numFirings; ++idx ) {
+        if( firings[idx][IDX_NEURON] < NUM_EXCITATORY_NEURONS) {
           spikesTotalExcitatory++;
         }
         else {
           spikesTotalInhibitory++;
         }
       }
-      printf( "[INFO]  Simulation time: %d seconds\n", simTimeSecond + 1 );
-      printf( "[INFO]  ... Firing rate (excitatory) = %f\n",
-              (double) spikesTotalExcitatory / (double) NUM_EXCITATORY_NEURONS);
-      printf( "[INFO]  ... Firing rate (inhibitory) = %f\n",
-              (double) spikesTotalInhibitory / (double) NUM_INHIBITORY_NEURONS);
+      printf( "[INFO]  Simulated time: %d seconds\n", simTimeSecond + 1 );
+      printf( "[INFO]  ... Firing rate (excitatory) = %f (total = %f, neurons = %f)\n"
+            , (double) spikesTotalExcitatory / (double) NUM_EXCITATORY_NEURONS, (double) spikesTotalExcitatory, (double) NUM_EXCITATORY_NEURONS );
+      printf( "[INFO]  ... Firing rate (inhibitory) = %f (total = %f, neurons = %f)\n"
+            , (double) spikesTotalInhibitory / (double) NUM_INHIBITORY_NEURONS, (double) spikesTotalInhibitory, (double) NUM_INHIBITORY_NEURONS );
 
 #if(LOG_MIN_MAX_V_U)
       printf( "[INFO]  ... v_max = %f\n", v_max );
@@ -338,7 +369,9 @@ int main() {
     }
 #endif
 
+#if( RECORD_SPIKE_DATA )
     RecordNetworkActivityToFile( OUTFILE_FIRINGS, simTimeSecond, numFirings );
+#endif
 
     // = = = = = = = = = = = = = = = = = = = = = =
     // = PREPARE NEXT SIMULATION TIME STEP
@@ -349,13 +382,13 @@ int main() {
       }
     }
 
-    int k = numFirings - 1;
-    while( 1000 - firings[k][TIME] < MAX_SYNAPSE_DELAY) {
+    long int k = numFirings - 1;
+    while( 1000 - firings[k][IDX_TIME] < MAX_SYNAPSE_DELAY) {
       k--;
     }
-    for( int i = 1; i < numFirings - k; ++i ) {
-      firings[i][TIME] = firings[k + i][TIME] - 1000;
-      firings[i][NEURON] = firings[k + i][NEURON];
+    for( long int i = 1; i < numFirings - k; ++i ) {
+      firings[i][IDX_TIME] = firings[k + i][IDX_TIME] - 1000;
+      firings[i][IDX_NEURON] = firings[k + i][IDX_NEURON];
     }
     numFirings = numFirings - k;
 
@@ -363,7 +396,7 @@ int main() {
     // = = = = = = = = = = = = = = = = = = = = = =
     // = UPDATE SYNAPTIC WEIGHTS
     // = = = = = = = = = = = = = = = = = = = = = =
-    // only excitatory connections are modified
+    // only excitatory connections are plastic
     for( int n = 0; n < NUM_EXCITATORY_NEURONS; ++n ) {
       for( int s = 0; s < NUM_SYNAPSES_PER_NEURON; ++s ) {
 
@@ -382,14 +415,26 @@ int main() {
       }
     }
 #endif
-  }                                                                                  // end of simulation loop [seconds]
+  }                     // end of simulation loop [seconds]
+
+  std::chrono::steady_clock::time_point endTime = std::chrono::steady_clock::now();
 
   FinalizeSimulation();
+
+  std::cout << "Simulated time         : " << SIM_TIME << "seconds" << std::endl;
+  std::cout << "Simulation duration    : " << (std::chrono::duration_cast<std::chrono::microseconds>( endTime - startTime ).count()) / 1000000.0 << " seconds" << std::endl;
+  std::cout << "Acceleration factor    : " << SIM_TIME / ((std::chrono::duration_cast<std::chrono::microseconds>( endTime - startTime ).count()) / 1000000.0)  << std::endl;
+  std::cout << "Total ODE solver steps : " << iterCount << std::endl;
+  std::cout << "Total number of spikes : " << spikeCount << std::endl;
+  std::cout << "Average firing rate    : " << static_cast<float>(spikeCount)/static_cast<float>(SIM_TIME)/static_cast<float>(NUM_TOTAL_NEURONS) << std::endl;
+  float spikesPerMSec = (static_cast<float>(spikeCount)/static_cast<float>(SIM_TIME))/1000;
+  std::cout << "Spikes per time step   : " << spikesPerMSec/static_cast<float>(ODE_SOLVER_STEPS) << std::endl;
 
   printf( "\n\nSimulation terminated normally! \n\n" );
 
   return (0);
 }
+
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 // = Initialize the polychronization network
@@ -403,12 +448,14 @@ void InitializeNetwork() {
       d[n] = RS_D;
       v[n] = RS_V_INIT;
       u[n] = RS_U_INIT;
+      i_offs[n] = I_OFFS_RS;
     }
     else {                                                                           // inhibitory neurons, FS type
       a[n] = FS_A;
       d[n] = FS_D;
       v[n] = FS_V_INIT;
       u[n] = FS_U_INIT;
+      i_offs[n] = I_OFFS_FS;
     }
   }
 
@@ -416,21 +463,33 @@ void InitializeNetwork() {
   // = = = = = = = = = = = = = = = = = = = = = =
   // = CONNECTION MATRIX
   // = = = = = = = = = = = = = = = = = = = = = =
-  #if( GENERATE_NETWORK_FROM_EXTERNAL_DATA )
+#if( GENERATE_NETWORK_FROM_EXTERNAL_DATA )
   ImportConnectionMatrixFromFile( INFILE_CONNECTION_MATRIX );
 #else
   // fill matrixOfPostSynapticNeurons[n][n] with random target neurons
-  // avoid self-assignments and multiple connections
+  // avoid autapses and multapses
+
+  int numOfTargets[NUM_TOTAL_NEURONS] = {'\0'};
+  int numRedrawnConnections = 0;
+
+#if( BALANCED_OUTGOING_CONNS )
+  for( int n = NUM_TOTAL_NEURONS - 1; n >= 0; --n ) {                                // draw inhibitory connections first
+#else
   for( int n = 0; n < NUM_TOTAL_NEURONS; ++n ) {
+#endif
     for( int s = 0; s < NUM_SYNAPSES_PER_NEURON; ++s ) {
 
       bool duplicateTarget = false;
       bool selfAssigned = false;
+      bool limitTargets = false;
       int randomTargetNeuron = 0;
 
+      // repeat and redraw connection in case of an autapse, multapse or
+      // too much outgoing connections detected (if BALANCED_OUTGOING_CONNS is set)
       do {
         duplicateTarget = false;
         selfAssigned = false;
+        limitTargets = false;
 
         if( n < NUM_EXCITATORY_NEURONS ) {                                           // excitatory neurons can connect to all neurons
           randomTargetNeuron = GET_RANDOM_INT( NUM_TOTAL_NEURONS );
@@ -446,7 +505,26 @@ void InitializeNetwork() {
             duplicateTarget = true;
           }
         }
-      } while( duplicateTarget || selfAssigned );
+
+        if( BALANCED_OUTGOING_CONNS && (numOfTargets[randomTargetNeuron] > LIMIT_OUTGOING_CONNS)) {
+          limitTargets = true;
+          numRedrawnConnections++;
+
+          // loop detection
+          // if LIMIT_OUTGOING_CONNS is set too small, this my end in an infinite loop as there might be no free entry in any
+          // neuron's target list
+          if(numRedrawnConnections > 20000) {
+            // if LIMIT_OUTGOING_CONNS is set too small, we may never
+            printf( "[ERROR]  Number of redrawn connections exceeds 20000. Possible loop at %s %d\n", __FILE__, __LINE__);
+            fflush(stdout);
+            exit(-1);
+          }
+        }
+        else {
+          numOfTargets[randomTargetNeuron]++;
+        }
+
+      } while( duplicateTarget || selfAssigned || limitTargets );
 
       matrixOfPostSynapticNeurons[n][s] = randomTargetNeuron;
     }
@@ -471,10 +549,20 @@ void InitializeNetwork() {
     for( int s = 0; s < NUM_SYNAPSES_PER_NEURON; ++s ) {
 
       if( n < NUM_EXCITATORY_NEURONS) {
+  #if(INIT_WITH_RANDOM_WEIGHTS)
+        double weight = GET_RANDOM_FLOAT(INIT_EXC_SYNAPTIC_WEIGHT);
+        matrixOfSynapticWeights[n][s] = weight;
+  #else
         matrixOfSynapticWeights[n][s] = INIT_EXC_SYNAPTIC_WEIGHT;
+  #endif
       }
       else {
+  #if(INIT_WITH_RANDOM_WEIGHTS)
+        double weight = GET_RANDOM_FLOAT(INIT_INH_SYNAPTIC_WEIGHT);
+        matrixOfSynapticWeights[n][s] = weight;
+  #else
         matrixOfSynapticWeights[n][s] = INIT_INH_SYNAPTIC_WEIGHT;
+  #endif
       }
       matrixOfSynapticWeights_derivatives[n][s] = 0.0;
     }
@@ -496,7 +584,7 @@ void InitializeNetwork() {
   ImportDelayMatrixFromFile(INFILE_DELAY_MATRIX);
 #else
   for( int n = 0; n < NUM_TOTAL_NEURONS; ++n ) {
-    short synapseCorrespondingToDelay = 0;
+    int synapseCorrespondingToDelay = 0;
     for( int delayIdx = 0; delayIdx < MAX_SYNAPSE_DELAY; ++delayIdx ) {
       numEntriesPerDelay[n][delayIdx] = 0;
     }
@@ -546,7 +634,7 @@ void InitializeNetwork() {
             int excPreSynNeuron_numEntriesOfDelay = numEntriesPerDelay[excPreSynNeuron][delayIdx];
 
             for( int i = 0; i < excPreSynNeuron_numEntriesOfDelay; ++i ) {
-              short synapse = listOfSynsByNeuronAndDelay[excPreSynNeuron][delayIdx][i];
+              int synapse = listOfSynsByNeuronAndDelay[excPreSynNeuron][delayIdx][i];
               int postSynNeuron = matrixOfPostSynapticNeurons[excPreSynNeuron][synapse];
 
               if( postSynNeuron == n ) {
@@ -593,12 +681,20 @@ void InitializeNetwork() {
   }
 
   // REFACTOR COMMENT: just for the algorithm; does not contribute to the network activity
-  numFirings = 1;                                                                    // dummy spike ...
-  firings[0][TIME] = -MAX_SYNAPSE_DELAY;                                             // ... at -MAX_SYNAPSE_DELAY for ...
-  firings[0][NEURON] = 0;                                                            // ... neuron n = 0
+  numFirings = 1;                                                                        // a dummy spike ...
+  firings[0][IDX_TIME] = -MAX_SYNAPSE_DELAY;                                             // ... at -MAX_SYNAPSE_DELAY for ...
+  firings[0][IDX_NEURON] = 0;                                                            // ... neuron n = 0
 
 #ifdef OUTFILE_CON_WEIGHT_DELAY_INITIAL
   ExportConnectionMatrixWeightAndDelay(OUTFILE_CON_WEIGHT_DELAY_INITIAL);
+#endif
+
+#ifdef OUTFILE_HNC_NODE_CONNECT_CALLS
+  ExportHNCNodeConnectCalls(OUTFILE_HNC_NODE_CONNECT_CALLS);
+#endif
+
+#ifdef OUTFILE_NEST_CONNECTIVITY_DICTS
+  ExportNESTConnectionDicts(OUTFILE_NEST_CONNECTIVITY_DICTS);
 #endif
 }
 
@@ -606,7 +702,7 @@ void InitializeNetwork() {
 // = Initialize simulation: set seed, delete previously created files, open files
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 void InitializeSimulation() {
-  srand( 0 );                                                                        // set a seed (repeatability)
+  srand( 0 );                                                                            // for repeatability
 
 #if( LOG_MIN_MAX_V_U )
   v_max = 0.0;
@@ -631,13 +727,20 @@ void InitializeSimulation() {
   DeleteFile(OUTFILE_CON_WEIGHT_DELAY_INITIAL);
 #endif
 
+#ifdef OUTFILE_HNC_NODE_CONNECT_CALLS
+  DeleteFile(OUTFILE_HNC_NODE_CONNECT_CALLS);
+#endif
+
+#ifdef OUTFILE_NEST_CONNECTIVITY_DICTS
+  DeleteFile(OUTFILE_NEST_CONNECTIVITY_DICTS);
+#endif
+
 #ifdef OUTFILE_WEIGHTS_INITIAL
   DeleteFile(OUTFILE_WEIGHTS_INITIAL);
 #endif
 
   DeleteFile( OUTFILE_FIRINGS );
 
-  // open files which are required throughout the entire simulation
 #ifdef OUTFILE_STIMULUS
   pFileStimulusOutput = fopen( OUTFILE_STIMULUS, "w" );
   if( pFileStimulusOutput == nullptr ) {

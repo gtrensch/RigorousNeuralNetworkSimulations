@@ -3,9 +3,7 @@
 /*
  *  params_simulate_selected_state_2.h
  *
- *  This file is part of the refactored Izhikevich polychronization model application.
- *
- *  Copyright (C) 2018, Author: G. Trensch
+ *  Copyright (C) 2018, G. Trensch, Forschungszentrum Jülich, JSC, Simulation & Data Laboratory Neuroscience
  *
  *  The refactored Izhikevich polychronization model application is free software:
  *  you can redistribute it and/or modify
@@ -35,20 +33,27 @@
 #define GENERATE_NETWORK_FROM_EXTERNAL_DATA   true
 #define USE_EXTERNAL_STIMULUS                 true
 #define USE_STDP                              false
+#define INIT_WITH_RANDOM_WEIGHTS              false
 
-#define INFILE_CONNECTION_MATRIX              "../data/conMatrix.dat"
-#define INFILE_DELAY_MATRIX                   "../data/delayMatrix.dat"
-#define INFILE_STIMULUS                       "../data/randomNetworkInput.dat"
-#define INFILE_WEIGHT_MATRIX                  "../data/weightMatrix_after2h.dat"
+#define INFILE_CONNECTION_MATRIX              "../../data/conMatrix.dat"
+#define INFILE_DELAY_MATRIX                   "../../data/delayMatrix.dat"
+#define INFILE_STIMULUS                       "../../data/randomNetworkInput.dat"
+#define INFILE_WEIGHT_MATRIX                  "../../data/weightMatrix_after2h.dat"
 
-#define OUTFILE_FIRINGS                       "../data/firings_after2h.dat"
+#define OUTFILE_FIRINGS                       "../../data/firings_after2h.dat"
 
 // can be specified for verification purposes
-// #define OUTFILE_CONNECTIONS                "../data/conMatrix_initial.dat"
-// #define OUTFILE_WEIGHTS_INITIAL            "../data/weightMatrix_initial.dat"
-// #define OUTFILE_DELAYS                     "../data/delayMatrix_initial.dat"
+// #define OUTFILE_CONNECTIONS                "../../data/conMatrix_initial.dat"
+// #define OUTFILE_WEIGHTS_INITIAL            "../../data/weightMatrix_initial.dat"
+// #define OUTFILE_DELAYS                     "../../data/delayMatrix_initial.dat"
 
 // generate connection lists for import into PyNN for SpiNNaker
-#define OUTFILE_CON_WEIGHT_DELAY_INITIAL      "../data/pythonConWeightDelay_after2h.py"
+#define OUTFILE_CON_WEIGHT_DELAY_INITIAL      "../../data/pythonConWeightDelay_after2h.py"
+
+// generate connect function calls for import into FPGA NC node APC program
+#define OUTFILE_HNC_NODE_CONNECT_CALLS        "../../data/hnc_node_gen_network_after2h.h"
+
+// generate dictionary with connection information for import into NEST
+#define OUTFILE_NEST_CONNECTIVITY_DICTS       "../../data/dictsConWeightDelayNEST_after2h.py"
 
 #endif   // __PARAMS_SIMULATE_SELECTED_STATE_2_H__

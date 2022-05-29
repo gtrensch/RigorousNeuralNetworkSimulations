@@ -3,9 +3,7 @@
 /*
  *  utils.h
  *
- *  This file is part of the refactored Izhikevich polychronization model application.
- *
- *  Copyright (C) 2018, Author: G. Trensch
+ *  Copyright (C) 2018, G. Trensch, Forschungszentrum Jülich, JSC, Simulation & Data Laboratory Neuroscience
  *
  *  The refactored Izhikevich polychronization model application is free software:
  *  you can redistribute it and/or modify
@@ -30,21 +28,23 @@
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 // =   F O R W A R D   D E C L A R A T I O N S
 /// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-void ExportConnectionMatrixToFile( const char *pFileName );
-void ExportWeightMatrixToFile( const char *pFileName );
-void ExportDelayMatrixToFile( const char *pFileName );
-void ExportConnectionMatrixWeightAndDelay( const char *pFileName );
+void ExportConnectionMatrixToFile( const char* pFileName );
+void ExportWeightMatrixToFile( const char* pFileName );
+void ExportDelayMatrixToFile( const char* pFileName );
+void ExportConnectionMatrixWeightAndDelay( const char* pFileName );
+void ExportHNCNodeConnectCalls( const char* pFileName );
+void ExportNESTConnectionDicts( const char* pFileName );
 
-void ImportConnectionMatrixFromFile( const char *pFileName );
-void ImportWeightMatrixFromFile( const char *pFileName );
-void ImportDelayMatrixFromFile( const char *pFileName );
+void ImportConnectionMatrixFromFile( const char* pFileName );
+void ImportWeightMatrixFromFile( const char* pFileName );
+void ImportDelayMatrixFromFile( const char* pFileName );
 
-void RecordNetworkActivityToFile( const char *pFileName, int simulationSecond, int numFirings );
-void RecordRandomStimulusToFile( const char *pFileName, int simTimeSecond, int simTimeMillisecond, int inputNeuron );
-int  GetNextExternalStimulusFromFile( const char *pFileName, int simTimeSecond, int t );
+void RecordNetworkActivityToFile( const char* pFileName, int simulationSecond, int numFirings );
+void RecordRandomStimulusToFile( const char* pFileName, int simTimeSecond, int simTimeMillisecond, int inputNeuron );
+int  GetNextExternalStimulusFromFile( const char* pFileName, int simTimeSecond, int t );
 
 int  GetDelayOfConnection( int preSynNeuron, int synapse );
-void DeleteFile( const char *pFileName );
+void DeleteFile( const char* pFileName );
 
 void PrintMatrixOfPostSynapticNeurons();
 void PrintMatrixOfSynapticWeights();

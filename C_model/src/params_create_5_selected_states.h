@@ -3,9 +3,7 @@
 /*
  *  params_create_5_selected_states.h
  *
- *  This file is part of the refactored Izhikevich polychronization model application.
- *
- *  Copyright (C) 2018, Author: G. Trensch
+ *  Copyright (C) 2018, G. Trensch, Forschungszentrum Jülich, JSC, Simulation & Data Laboratory Neuroscience
  *
  *  The refactored Izhikevich polychronization model application is free software:
  *  you can redistribute it and/or modify
@@ -31,13 +29,14 @@
 // = delay matrix (same for all states), and the weight matrices: w(t1), ... w(t5).
 // = Additionally, the random input data is recorded as well as the network activity data.
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-#define PARAM_INFO_STRING                     "CREATE FIVE NETWORK STATES WITH STDP"
+#define PARAM_INFO_STRING                     "CREATE FIVE NETWORK STATES WITH STDP ON"
 
 #define SIM_TIME                              (int)(60*60*5+120)      // seconds
 
 #define GENERATE_NETWORK_FROM_EXTERNAL_DATA   false
 #define USE_EXTERNAL_STIMULUS                 false
 #define USE_STDP                              true
+#define INIT_WITH_RANDOM_WEIGHTS              false
 
 #define SELECTED_STATE_1_AFTER_N_SECONDS      (int)(60*60*1)          // seconds
 #define SELECTED_STATE_2_AFTER_N_SECONDS      (int)(60*60*2)
@@ -45,16 +44,16 @@
 #define SELECTED_STATE_4_AFTER_N_SECONDS      (int)(60*60*4)
 #define SELECTED_STATE_5_AFTER_N_SECONDS      (int)(60*60*5)
 
-#define OUTFILE_CONNECTIONS                   "../data/conMatrix.dat"
-#define OUTFILE_DELAYS                        "../data/delayMatrix.dat"
+#define OUTFILE_CONNECTIONS                   "../../data/conMatrix.dat"
+#define OUTFILE_DELAYS                        "../../data/delayMatrix.dat"
 
-#define OUTFILE_STATE_1_WEIGHT_MATRIX         "../data/weightMatrix_after1h.dat"
-#define OUTFILE_STATE_2_WEIGHT_MATRIX         "../data/weightMatrix_after2h.dat"
-#define OUTFILE_STATE_3_WEIGHT_MATRIX         "../data/weightMatrix_after3h.dat"
-#define OUTFILE_STATE_4_WEIGHT_MATRIX         "../data/weightMatrix_after4h.dat"
-#define OUTFILE_STATE_5_WEIGHT_MATRIX         "../data/weightMatrix_after5h.dat"
+#define OUTFILE_STATE_1_WEIGHT_MATRIX         "../../data/weightMatrix_after1h.dat"
+#define OUTFILE_STATE_2_WEIGHT_MATRIX         "../../data/weightMatrix_after2h.dat"
+#define OUTFILE_STATE_3_WEIGHT_MATRIX         "../../data/weightMatrix_after3h.dat"
+#define OUTFILE_STATE_4_WEIGHT_MATRIX         "../../data/weightMatrix_after4h.dat"
+#define OUTFILE_STATE_5_WEIGHT_MATRIX         "../../data/weightMatrix_after5h.dat"
 
-#define OUTFILE_STIMULUS                      "../data/randomNetworkInput.dat"
-#define OUTFILE_FIRINGS                       "../data/firings.dat"
+#define OUTFILE_STIMULUS                      "../../data/randomNetworkInput.dat"
+#define OUTFILE_FIRINGS                       "../../data/firings.dat"
 
 #endif   // __PARAMS_CREATE_5_SELECTED_STATES_H__

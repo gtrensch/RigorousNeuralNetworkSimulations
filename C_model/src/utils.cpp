@@ -1,9 +1,7 @@
 /*
  *  utils.cpp
  *
- *  This file is part of the refactored Izhikevich polychronization model application.
- *
- *  Copyright (C) 2018, Author: G. Trensch
+ *  Copyright (C) 2018, G. Trensch, Forschungszentrum Jülich, JSC, Simulation & Data Laboratory Neuroscience
  *
  *  The refactored Izhikevich polychronization model application is free software:
  *  you can redistribute it and/or modify
@@ -71,6 +69,7 @@ void ExportConnectionMatrixToFile( const char *pFileName ) {
   fclose( pFile );
 }
 
+
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 // = Export weight matrix to file in printable ASCII format.
 // =
@@ -100,6 +99,7 @@ void ExportWeightMatrixToFile( const char *pFileName ) {
 
   fclose( pFile );
 }
+
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 // = Export delay matrix to file in printable ASCII format.
@@ -131,6 +131,7 @@ void ExportDelayMatrixToFile( const char *pFileName ) {
 
   fclose( pFile );
 }
+
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 // = Export connection, weight, and delay matrix to file for import into PyNN.
@@ -233,6 +234,196 @@ void ExportConnectionMatrixWeightAndDelay( const char *pFileName ) {
   fprintf( pFile, "]\n\n" );
 
   fclose( pFile );
+}
+
+
+// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// = Export connectivity in HNC node format.
+// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+//
+//   Create a list of C-API function calls.
+//
+//   Connect(preSynNeuronId, postSynNeuronId, weight, delay(in units of 0.1 ms steps));
+//   Connect( ... );
+//   ...
+//   Connect( ... );
+//
+// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+void ExportHNCNodeConnectCalls( const char *pFileName) {
+  FILE *pFile = fopen( pFileName, "w" );
+  if( pFile == nullptr ) {
+    printf( "[ERROR] Failed to open file: %s   (errno: %d)\n", pFileName, errno);
+    exit(RC_ERROR_EXIT);
+  }
+  printf( "[INFO]  Export network connectivity data in HNC node format: %s\n", pFileName );
+
+  fprintf( pFile, "#ifndef __ACP_BUILD_NETWORK_H__\n");
+  fprintf( pFile, "#define __ACP_BUILD_NETWORK_H__\n");
+  fprintf( pFile, "#define RS_Iext_EX  (float)(0.0)\n");
+  fprintf( pFile, "#define FS_Iext_INH (float)(0.0)\n");
+  fprintf( pFile, "// + + + Two-population Izhikevich Network + + +\n");
+  fprintf( pFile, "  void BuildNetwork() {\n");
+  fprintf( pFile, "  Divider_Enable();\n");
+  fprintf( pFile, "  // Neuron Setup\n");
+  // neurons
+  for( int neuron = 0; neuron < NUM_EXCITATORY_NEURONS; ++neuron ) {
+    fprintf( pFile, "  Izhk_SetNeuronStateVars(%d, IZHK_NEURON_TYPE_RS, %+09.4f, %+09.4f, RS_Iext_EX);\n", neuron, RS_V_INIT, RS_U_INIT);
+  }
+  fprintf( pFile, "\n");
+  for( int neuron = NUM_EXCITATORY_NEURONS; neuron < NUM_EXCITATORY_NEURONS + NUM_INHIBITORY_NEURONS; ++neuron ) {
+    fprintf( pFile, "  Izhk_SetNeuronStateVars(%d, IZHK_NEURON_TYPE_FS, %+09.4f, %+09.4f, FS_Iext_INH);\n", neuron, FS_V_INIT, FS_U_INIT);
+  }
+
+  fprintf( pFile, "\n");
+
+  fprintf( pFile, "  // Connection Setup\n");
+  // connections
+  for( int preSynNeuron = 0; preSynNeuron < (NUM_EXCITATORY_NEURONS + NUM_INHIBITORY_NEURONS); ++preSynNeuron ) {
+    for( int synapse = 0; synapse < NUM_SYNAPSES_PER_NEURON; ++synapse ) {
+      int    postSynNeuron = matrixOfPostSynapticNeurons[preSynNeuron][synapse];
+      double weight        = matrixOfSynapticWeights[preSynNeuron][synapse];
+      double delay         = GetDelayOfConnection( preSynNeuron, synapse );        // is in ms
+      unsigned int delay_01msResolution = (unsigned int)( delay * 10);             // in 0.1 ms
+      if(weight == 0) {
+        fprintf( pFile, "  // Connect( %d, %d, %+09.4f, %d );\n", preSynNeuron, postSynNeuron, weight, delay_01msResolution );
+      }
+      else {
+        fprintf( pFile, "  Connect( %d, %d, %+09.4f, %d );\n", preSynNeuron, postSynNeuron, weight, delay_01msResolution );
+      }
+    }
+    fprintf( pFile, "\n");
+  }
+
+  fprintf( pFile, "  NeuronStates_BramLoad();\n");
+  fprintf( pFile, "  return;\n");
+  fprintf( pFile, "}\n");
+  fprintf( pFile, "#endif // __ACP_BUILD_NETWORK_H__\n");
+
+  fclose( pFile );
+}
+
+
+// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// = Export connectivity for import into NEST.
+// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// export as dictionaries, all lists in a dictionary have to have same length
+// con_exc_to_all = {'source': [1,2,3,4,..,n], 'target': [1,2,3,4,..,n], 'weight': [0.1,0.2,..,n], 'delay': [0.1,0.2,..,n]}
+// con_inh_to_exc = {'source': [1,2,3,4,..,n], 'target': [1,2,3,4,..,n], 'weight': [-0.1,-0.2,..,n], 'delay': [0.1,0.2,..,n]}
+//
+// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+void ExportNESTConnectionDicts(const char* pFileName) {
+
+  typedef struct connection_ connection_t;
+  struct     connection_ {
+      int    preSynNeuron;
+      int    postSynNeuron;
+      double weight;
+      double delay;
+  };
+
+  printf( "[INFO]  Export network connectivity data for import into NEST: %s\n", pFileName );
+
+  // neurons
+  // ... nothing to do ...     // no export of state variable initial values needed, this is done in NEST
+
+  // collect the connections in two array
+  connection_t* connMatrix_exc_to_all = (connection_t*)malloc(NUM_EXCITATORY_NEURONS * NUM_SYNAPSES_PER_NEURON * sizeof(connection_t));
+  connection_t* connMatrix_inh_to_exc = (connection_t*)malloc(NUM_INHIBITORY_NEURONS * NUM_SYNAPSES_PER_NEURON * sizeof(connection_t));
+
+  int connIdx = 0;
+  for( int preSynNeuron = 0; preSynNeuron < NUM_EXCITATORY_NEURONS; ++preSynNeuron ) {
+    for( int synapse = 0; synapse < NUM_SYNAPSES_PER_NEURON; ++synapse ) {
+      connMatrix_exc_to_all[connIdx].preSynNeuron = preSynNeuron + 1;                                            // NEST numbers neurons starting from 1
+      connMatrix_exc_to_all[connIdx].postSynNeuron = matrixOfPostSynapticNeurons[preSynNeuron][synapse] + 1;     // NEST numbers neurons starting from 1
+      connMatrix_exc_to_all[connIdx].weight = matrixOfSynapticWeights[preSynNeuron][synapse];
+      connMatrix_exc_to_all[connIdx].delay = GetDelayOfConnection( preSynNeuron, synapse );                      // in ms
+      connIdx++;
+    }
+  }
+  connIdx = 0;
+  for( int preSynNeuron = NUM_EXCITATORY_NEURONS; preSynNeuron < (NUM_EXCITATORY_NEURONS + NUM_INHIBITORY_NEURONS); ++preSynNeuron ) {
+    for( int synapse = 0; synapse < NUM_SYNAPSES_PER_NEURON; ++synapse ) {
+      connMatrix_inh_to_exc[connIdx].preSynNeuron = preSynNeuron + 1;                                            // NEST numbers neurons starting from 1
+      connMatrix_inh_to_exc[connIdx].postSynNeuron = matrixOfPostSynapticNeurons[preSynNeuron][synapse] + 1;     // NEST numbers neurons starting from 1
+      connMatrix_inh_to_exc[connIdx].weight = matrixOfSynapticWeights[preSynNeuron][synapse];
+      connMatrix_inh_to_exc[connIdx].delay = GetDelayOfConnection( preSynNeuron, synapse );                      // in ms
+      connIdx++;
+    }
+  }
+
+  // export to file
+
+  FILE *pFile = fopen( pFileName, "w" );
+  if( pFile == nullptr ) {
+    printf( "[ERROR] Failed to open file: %s   (errno: %d)\n", pFileName, errno);
+    exit(RC_ERROR_EXIT);
+  }
+
+  // exc to all
+  fprintf( pFile, "con_exc_to_all = { \\\n");
+  fprintf( pFile, "'source': [");
+  for( int i = 0; i < NUM_EXCITATORY_NEURONS * NUM_SYNAPSES_PER_NEURON - 1; ++i) {
+    fprintf(pFile, "%d, ", connMatrix_exc_to_all[i].preSynNeuron);
+    if(i > 0 && i % 20 == 0) fprintf(pFile, " \\\n");
+  }
+  fprintf(pFile, "%d], \\\n", connMatrix_exc_to_all[NUM_EXCITATORY_NEURONS * NUM_SYNAPSES_PER_NEURON - 1].preSynNeuron);
+
+  fprintf( pFile, "'target': [");
+  for( int i = 0; i < NUM_EXCITATORY_NEURONS * NUM_SYNAPSES_PER_NEURON - 1; ++i) {
+    fprintf(pFile, "%d, ", connMatrix_exc_to_all[i].postSynNeuron);
+    if(i > 0 && i % 20 == 0) fprintf(pFile, " \\\n");
+  }
+  fprintf(pFile, "%d], \\\n", connMatrix_exc_to_all[NUM_EXCITATORY_NEURONS * NUM_SYNAPSES_PER_NEURON - 1].postSynNeuron);
+
+  fprintf( pFile, "'weight': [");
+  for( int i = 0; i < NUM_EXCITATORY_NEURONS * NUM_SYNAPSES_PER_NEURON - 1; ++i) {
+    fprintf(pFile, "%.6f, ", connMatrix_exc_to_all[i].weight);
+    if(i > 0 && i % 20 == 0) fprintf(pFile, " \\\n");
+  }
+  fprintf(pFile, "%.6f], \\\n", connMatrix_exc_to_all[NUM_EXCITATORY_NEURONS * NUM_SYNAPSES_PER_NEURON - 1].weight);
+
+  fprintf( pFile, "'delay': [");
+  for( int i = 0; i < NUM_EXCITATORY_NEURONS * NUM_SYNAPSES_PER_NEURON - 1; ++i) {
+    fprintf(pFile, "%.6f, ", connMatrix_exc_to_all[i].delay);
+    if(i > 0 && i % 20 == 0) fprintf(pFile, " \\\n");
+  }
+  fprintf(pFile, "%.6f]} \n", connMatrix_exc_to_all[NUM_EXCITATORY_NEURONS * NUM_SYNAPSES_PER_NEURON - 1].delay);
+
+  fprintf(pFile, "\n");
+
+  // inh to exc
+  fprintf( pFile, "con_inh_to_exc = { \\\n");
+  fprintf( pFile, "'source': [");
+  for( int i = 0; i < NUM_INHIBITORY_NEURONS * NUM_SYNAPSES_PER_NEURON - 1; ++i) {
+    fprintf(pFile, "%d, ", connMatrix_inh_to_exc[i].preSynNeuron);
+    if(i > 0 && i % 20 == 0) fprintf(pFile, " \\\n");
+  }
+  fprintf(pFile, "%d], \\\n", connMatrix_inh_to_exc[NUM_INHIBITORY_NEURONS * NUM_SYNAPSES_PER_NEURON - 1].preSynNeuron);
+
+  fprintf( pFile, "'target': [");
+  for( int i = 0; i < NUM_INHIBITORY_NEURONS * NUM_SYNAPSES_PER_NEURON - 1; ++i) {
+    fprintf(pFile, "%d, ", connMatrix_inh_to_exc[i].postSynNeuron);
+    if(i > 0 && i % 20 == 0) fprintf(pFile, " \\\n");
+  }
+  fprintf(pFile, "%d], \\\n", connMatrix_inh_to_exc[NUM_INHIBITORY_NEURONS * NUM_SYNAPSES_PER_NEURON - 1].postSynNeuron);
+
+  fprintf( pFile, "'weight': [");
+  for( int i = 0; i < NUM_INHIBITORY_NEURONS * NUM_SYNAPSES_PER_NEURON - 1; ++i) {
+    fprintf(pFile, "%.6f, ", connMatrix_inh_to_exc[i].weight);
+    if(i > 0 && i % 20 == 0) fprintf(pFile, " \\\n");
+  }
+  fprintf(pFile, "%.6f], \\\n", connMatrix_inh_to_exc[NUM_INHIBITORY_NEURONS * NUM_SYNAPSES_PER_NEURON - 1].weight);
+
+  fprintf( pFile, "'delay': [");
+  for( int i = 0; i < NUM_INHIBITORY_NEURONS * NUM_SYNAPSES_PER_NEURON - 1; ++i) {
+    fprintf(pFile, "%.6f, ", connMatrix_inh_to_exc[i].delay);
+    if(i > 0 && i % 20 == 0) fprintf(pFile, " \\\n");
+  }
+  fprintf(pFile, "%.6f]} \n", connMatrix_inh_to_exc[NUM_INHIBITORY_NEURONS * NUM_SYNAPSES_PER_NEURON - 1].delay);
+
+  fclose( pFile );
+  free(connMatrix_exc_to_all);
+  free(connMatrix_inh_to_exc);
 }
 
 
@@ -444,12 +635,12 @@ void RecordNetworkActivityToFile( const char *pFileName, int simulationSecond, i
 
   // skip negative times
   int idx = 0;
-  while( firings[idx][TIME] < 0 ) {
+  while( firings[idx][IDX_TIME] < 0 ) {
     idx++;
   }
 
   for( ; idx < numFirings; ++idx ) {
-    fprintf( pFile, "%06d %03d %03d\n", simulationSecond, firings[idx][TIME], firings[idx][NEURON] );
+    fprintf( pFile, "%06d %03d %03d\n", simulationSecond, firings[idx][IDX_TIME], firings[idx][IDX_NEURON] );
   }
 
   fclose( pFile );

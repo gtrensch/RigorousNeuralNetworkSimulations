@@ -3,9 +3,7 @@
 /*
  *  globals.h
  *
- *  This file is part of the refactored Izhikevich polychronization model application.
- *
- *  Copyright (C) 2018, Author: G. Trensch
+ *  Copyright (C) 2018, G. Trensch, Forschungszentrum Jülich, JSC, Simulation & Data Laboratory Neuroscience
  *
  *  The refactored Izhikevich polychronization model application is free software:
  *  you can redistribute it and/or modify
@@ -42,13 +40,30 @@
 #define MAX_SYNAPSE_DELAY           (int)(20)
 #define MAX_SYNAPTIC_STRENGTH       (double)(10.0)
 
+// down-scaled versions 20 neurons
+
+// #define NUM_EXCITATORY_NEURONS      (int)(16)
+// #define NUM_INHIBITORY_NEURONS      (int)(4)
+// #define NUM_SYNAPSES_PER_NEURON     (int)(5)
+// #define MAX_SYNAPSE_DELAY           (int)(5)
+// #define MAX_SYNAPTIC_STRENGTH       (double)(10.0)
+
+// down-scaled version 200 neurons
+
+// #define NUM_EXCITATORY_NEURONS      (int)(160)
+// #define NUM_INHIBITORY_NEURONS      (int)(40)
+// #define NUM_SYNAPSES_PER_NEURON     (int)(20)
+// #define MAX_SYNAPSE_DELAY           (int)(10)
+// #define MAX_SYNAPTIC_STRENGTH       (double)(10.0)
+
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 // =   M A C R O   D E F I N I T I O N S
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 #define GET_RANDOM_INT(max)         (int(floor(max * ( 0.9999999 * double(rand()) / RAND_MAX))))
+#define GET_RANDOM_FLOAT(max)       (max * ( 0.9999999 * double(rand()) / RAND_MAX))
 
 #define NUM_TOTAL_NEURONS           (int)(NUM_EXCITATORY_NEURONS + NUM_INHIBITORY_NEURONS)
-#define MAX_NUM_FIRINGS             (int)(100 * NUM_TOTAL_NEURONS)
+#define MAX_NUM_FIRINGS             (long int)(1000 * NUM_TOTAL_NEURONS)
 #define INIT_EXC_SYNAPTIC_WEIGHT    (double)(6.0)
 #define INIT_INH_SYNAPTIC_WEIGHT    (double)(-5.0)
 
@@ -69,6 +84,9 @@
 
 #define I_EXT                       (double)(20.0)
 
+#define I_OFFS_RS                   (double)(0.0)
+#define I_OFFS_FS                   (double)(0.0)
+
 #define RC_NOID                     (int)(-1)
 #define RC_ERROR_EXIT               (int)(-2)
 
@@ -79,8 +97,8 @@ EXTERN int      matrixOfPostSynapticNeurons        [ NUM_TOTAL_NEURONS ][ NUM_SY
 EXTERN double   matrixOfSynapticWeights            [ NUM_TOTAL_NEURONS ][ NUM_SYNAPSES_PER_NEURON ];
 EXTERN double   matrixOfSynapticWeights_derivatives[ NUM_TOTAL_NEURONS ][ NUM_SYNAPSES_PER_NEURON ];
 
-EXTERN short    numEntriesPerDelay[NUM_TOTAL_NEURONS][MAX_SYNAPSE_DELAY];
-EXTERN short    listOfSynsByNeuronAndDelay[NUM_TOTAL_NEURONS][MAX_SYNAPSE_DELAY][NUM_SYNAPSES_PER_NEURON];
+EXTERN int      numEntriesPerDelay[NUM_TOTAL_NEURONS][MAX_SYNAPSE_DELAY];
+EXTERN int      listOfSynsByNeuronAndDelay[NUM_TOTAL_NEURONS][MAX_SYNAPSE_DELAY][NUM_SYNAPSES_PER_NEURON];
 
 EXTERN int      numPreSynapticNeuronsOfTarget[ NUM_TOTAL_NEURONS ];
 
@@ -93,15 +111,16 @@ EXTERN int      listOfPresynapticDelays [ NUM_TOTAL_NEURONS ][ 3 * NUM_SYNAPSES_
 
 EXTERN double*  listOfPointersToSynapticWeights_derivatives[NUM_TOTAL_NEURONS][3 * NUM_SYNAPSES_PER_NEURON];
 
-EXTERN double	  LTP[NUM_TOTAL_NEURONS][1001 + MAX_SYNAPSE_DELAY];
+EXTERN double   LTP[NUM_TOTAL_NEURONS][1001 + MAX_SYNAPSE_DELAY];
 EXTERN double   LTD[NUM_TOTAL_NEURONS];
 
-EXTERN int      numFirings;
-EXTERN int      firings[MAX_NUM_FIRINGS][2];
-#define TIME    (int)(0)
-#define NEURON  (int)(1)
+EXTERN long int  numFirings;
+EXTERN long int  firings[MAX_NUM_FIRINGS][2];
+#define IDX_TIME    (int)(0)
+#define IDX_NEURON  (int)(1)
 
 EXTERN double   I_ext[NUM_TOTAL_NEURONS];
+EXTERN double   i_offs[NUM_TOTAL_NEURONS];
 
 EXTERN double   a[NUM_TOTAL_NEURONS];                                                // neuronal dynamics parameters
 EXTERN double   d[NUM_TOTAL_NEURONS];
@@ -109,7 +128,7 @@ EXTERN double   v[NUM_TOTAL_NEURONS];                                           
 EXTERN double   u[NUM_TOTAL_NEURONS];
 
 #if( ODE_SOLVER_REFINEMENT )
-EXTERN int      spike[NUM_TOTAL_NEURONS];                                            // spike count in an interval  (precise threshold detection)
+EXTERN long int spike[NUM_TOTAL_NEURONS];                                            // spike count in an interval  (precise threshold detection)
 #endif
 
 #if( LOG_MIN_MAX_V_U )
