@@ -1,9 +1,7 @@
 /*
  *  ode_solver.h
  *
- *  This file is part of the Izhikevich console application.
- *
- *  Copyright (C) 2016, Author: Guido Trensch
+ *  Copyright (C) 2016, G. Trensch, Forschungszentrum Jülich, JSC, Simulation & Data Laboratory Neuroscience
  *
  *  The Izhikevich console application is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,13 +18,29 @@
  *
  */
 
+
+// + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
+//  ODE solver implementations
+//
+//  References:
+//
+//  [1] Izhikevich, E. M. (2003). Simple model of spiking neurons. Trans. Neur. Netw. 14, 1569–1572.
+//      doi:10.1109/TNN.2003.820440
+//
+//  [2] Hopkins, M., and Furber, S. (2015). Accuracy and efficiency in fixed-point neural ode solvers.
+//      Neural Comput. 27, 2148–2182. doi: 10.1162/NECO_a_00772
+//
+// + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
+
+
+
 #include <math.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_odeiv.h>
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-// =   2D ODE SOLVER: STANDARD EULER
+// =   Explicit Forward Euler
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 void ode2dSolver_StandardEuler( PFUNCD  pODE1dxdt          // IN        function pointers to the 2d coupled ODE system
                               , PFUNCD  pODE2dydt          // IN 
@@ -37,21 +51,15 @@ void ode2dSolver_StandardEuler( PFUNCD  pODE1dxdt          // IN        function
                               , float*  y_tplus1           // OUT       y(t+1)
                               , void*   optParm = NULL )   // IN / OUT  Optional parameters
 {
-  // NOTE: There is a problem with the function pointer return values.
-  //       It surprisingly works if all data types are double instead of float !!!
-  //       To circumvent the problem the functions are called directly.
-
-  // *x_tplus1 = x_t + h * pODE1dxdt( x_t, y_t, optParm );
-  *x_tplus1 = x_t + h * dvdt( x_t, y_t, optParm );
-  // *y_tplus1 = y_t + h * pODE2dydt( x_t, y_t, optParm );
-  *y_tplus1 = y_t + h * dudt( x_t, y_t );
+  *x_tplus1 = x_t + h * pODE1dxdt( x_t, y_t, optParm );
+  *y_tplus1 = y_t + h * pODE2dydt( x_t, y_t, optParm );
 
   return;
 }
 
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-// =   2D ODE SOLVER: SYMPLECTIC EULER
+// =   Symplectic Euler
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 void ode2dSolver_SymplecticEuler( PFUNCD  pODE1dxdt          // IN        function pointers to the 2d coupled ODE system
                                 , PFUNCD  pODE2dydt          // IN 
@@ -62,21 +70,14 @@ void ode2dSolver_SymplecticEuler( PFUNCD  pODE1dxdt          // IN        functi
                                 , float*  y_tplus1           // OUT       y(t+1)
                                 , void*   optParm = NULL )   // IN / OUT  Optional parameters
 {
-  // NOTE: There is a problem with the function pointer return values.
-  //       It surprisingly works if all data types are double instead of float !!!
-  //       To circumvent the problem the functions are called directly.
-
-  // *x_tplus1 = x_t + h * pODE1dxdt( x_t, y_t, optParm );
-  *x_tplus1 = x_t + h * dvdt( x_t, y_t, optParm );
-  // *y_tplus1 = y_t + h * pODE2dydt( *x_tplus1, *y_tplus1, optParm );    // symplectic
-  *y_tplus1 = y_t + h * dudt( *x_tplus1, *y_tplus1 );    // symplectic
+  *x_tplus1 = x_t + h * pODE1dxdt( x_t, y_t, optParm );
+  *y_tplus1 = y_t + h * pODE2dydt( *x_tplus1, *y_tplus1, optParm );    // symplectic
 
   return;
 }
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-// =   EXPLIZIT SOLVER FOR THE IZHIKEVICH ODEs
-// =   SpiNNaker implementation
+// =   Explicite solver reduction, SpiNNaker implementations, see [2]
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 void explizitSpiNNaker( float   h
                       , float*  v
@@ -105,8 +106,7 @@ void explizitSpiNNaker( float   h
 
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-// =   EXPLIZIT SOLVER FOR THE IZHIKEVICH ODEs
-// =   explizit euler ( NEST implementation 1 ) 
+// =   Forward Euler, NEST implemenattion
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 void explizitNEST1( float   h
                   , float*  v
@@ -128,8 +128,7 @@ void explizitNEST1( float   h
 
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-// =   EXPLIZIT SOLVER FOR THE IZHIKEVICH ODEs
-// =   Izhikevich numerics from 2003 paper ( NEST implementation 2 ) 
+// =   Forward Euler, original Izhikevich implementation, see [1]
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 void explizitNEST2( float   h
                   , float*  v
@@ -143,7 +142,7 @@ void explizitNEST2( float   h
     float b = IZHIKEVICH_B;
 
     *v += h * 0.5 * ( 0.04 * v_old * v_old + 5.0 * v_old + 140.0 - u_old + i );  // for numetrical stablility
-    *v += h * 0.5 * ( 0.04 * v_old * v_old + 5.0 * v_old + 140.0 - u_old + i );  // see Izhikevich 2003
+    *v += h * 0.5 * ( 0.04 * v_old * v_old + 5.0 * v_old + 140.0 - u_old + i );  // see [1]
     *u += h * a * ( b * v_old - u_old );
 
     threshold( v, u );
@@ -151,10 +150,10 @@ void explizitNEST2( float   h
 }
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-// =   GNU Scientific Library
-// =   Based on the code generated by NESTML
+// =   GNU Scientific Library, Runge-Kutta-Fehlberg (rkf45)
+// =   (based on the code generated by NESTML)
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-int gslODESolver_EquationDynamics( double t, const double y[], double f[], void* params );
+int gslODESolver_OdeSystem( double t, const double *y, double *f, void* params );
 
 const int V_m_INDEX = 0;
 const int U_m_INDEX = 1;
@@ -186,7 +185,7 @@ void gslODESolver_Integrate( float   h
   double t = 0;
   double t1 = h;
   double stateVector[2];
-  double stepSize = h;          // stepSize will be adjusted by the evolve-function
+  double stepSize = h;          // the step size is adjusted by the evolve-function
 
   param_I_e = i;
 
@@ -197,25 +196,23 @@ void gslODESolver_Integrate( float   h
 
   while( t < t1 ) {                                        // There are 3 loops !!!
                                                            // - The outer loop of the simulation.
-                                                           // - This loop for t < stepSize < t1. Where stepSize is adjusted each iteration.
-                                                           // - The loop within evolve calling the ODEs "systemOfODEs.function = &gslODESolver_EquationDynamics"
+                                                           // - This loop: t < stepSize < t1, where the step size is adjusted in each iteration.
+                                                           // - The loop within 'evolve-function' calling the ODE's 'systemOfODEs.function = &gslODESolver_OdeSystem'
     gslRc = gsl_odeiv_evolve_apply( pEvolutionFunction
-                                  , pControlObject         // accuracy
-                                  , pSteppingFunction      // the algorithm
-                                  , &systemOfODEs          // equation
+                                  , pControlObject         // -> accuracy
+                                  , pSteppingFunction      // -> algorithm
+                                  , &systemOfODEs          // -> ODEs
                                   , &t
                                   , t1
                                   , &stepSize
-                                  , stateVector );         // needs to be updated in the equations, it is reset in between
-                                                           // It won't work to pass parameters, like synapse currents, to the equations
-                                                           // using the 
+                                  , stateVector );         // the state vectors need to be updated in the equations as they are reset between steps
 
     if( gslRc != GSL_SUCCESS ) {
       printf( "ERROR: gsl error\n" );
       exit( -1 );
     }
 
-    // Threshold
+    // threshold detection
     if( stateVector[V_m_INDEX] >= IZHIKEVICH_THR ) {
       stateVector[V_m_INDEX] = IZHIKEVICH_C;
       stateVector[U_m_INDEX] += IZHIKEVICH_D;
@@ -223,6 +220,7 @@ void gslODESolver_Integrate( float   h
 
   }
 
+  // new state
   *v = stateVector[V_m_INDEX];
   *u = stateVector[U_m_INDEX];
 
@@ -231,13 +229,13 @@ void gslODESolver_Integrate( float   h
 
 void gslODESolver_Init()
 {
-  pSteppingFunction = gsl_odeiv_step_alloc( gsl_odeiv_step_rkf45, 2 );      // instance of a stepping function for a two dimensinal system
-  pControlObject = gsl_odeiv_control_y_new( 1e-6, 0.0 );                    // create a new control object which will keep the local error on each step 
-                                                                            // within an absolute error 1e-6 and relative error of 0.0 with respect to 
+  pSteppingFunction = gsl_odeiv_step_alloc( gsl_odeiv_step_rkf45, 2 );      // instance of a stepping function for a 2D system of ODEs
+  pControlObject = gsl_odeiv_control_y_new( 1e-6, 0.0 );                    // create a new control object keeping the local error in each step
+                                                                            // within an absolute error of 1e-6 and a relative error of 0.0 with respect to
                                                                             // the solution y_i(t)
-  pEvolutionFunction = gsl_odeiv_evolve_alloc ( 2 );                        // instance of an evolution function for a two dimensinal system
+  pEvolutionFunction = gsl_odeiv_evolve_alloc ( 2 );                        // instance of an evolution function for a 2D system of ODEs
   
-  systemOfODEs.function = &gslODESolver_EquationDynamics;
+  systemOfODEs.function = &gslODESolver_OdeSystem;
   systemOfODEs.jacobian = NULL;
   systemOfODEs.dimension = 2;
   systemOfODEs.params = &param_I_e;
@@ -245,7 +243,7 @@ void gslODESolver_Init()
   return;
 }
 
-int gslODESolver_EquationDynamics( double t, const double y[], double f[], void* params )
+int gslODESolver_OdeSystem( double t, const double *y, double *f, void* params )
 {
   float I_e = *(float*)params;
 
@@ -270,25 +268,17 @@ void ode2dSolver_Heun( PFUNCD  pODE1dxdt          // IN        function pointers
                      , float*  y_tplus1           // OUT       y(t+1)
                      , void*   optParm = NULL )   // IN / OUT  Optional parameters
 {
-  // NOTE: There is a problem with the function pointer return values.
-  //       It surprisingly works if all data types are double instead of float !!!
-  //       To circumvent the problem the functions are called directly.
-
-  // float x_Euler = x_t + h * pODE1dxdt( x_t, y_t, optParm );
-  float x_Euler = x_t + h * dvdt( x_t, y_t, optParm );
-  // float y_Euler = y_t + h * pODE2dydt( x_t, y_t, optParm );
-  float y_Euler = y_t + h * dudt( x_t, y_t );
-  // *x_tplus1 = x_t + h * pODE1dxdt( 0.5 * (x_t + x_Euler), 0.5 * (y_t + y_Euler), optParm );
-  *x_tplus1 = x_t + h * dvdt( 0.5 * (x_t + x_Euler), 0.5 * (y_t + y_Euler), optParm );
-  // *y_tplus1 = y_t + h * pODE2dydt( 0.5 * (x_t + x_Euler), 0.5 * (y_t + y_Euler), optParm );
-  *y_tplus1 = y_t + h * dudt( 0.5 * (x_t + x_Euler), 0.5 * (y_t + y_Euler) );
+  float x_Euler = x_t + h * pODE1dxdt( x_t, y_t, optParm );
+  float y_Euler = y_t + h * pODE2dydt( x_t, y_t, optParm );
+  *x_tplus1 = x_t + h * pODE1dxdt( 0.5 * (x_t + x_Euler), 0.5 * (y_t + y_Euler), optParm );
+  *y_tplus1 = y_t + h * pODE2dydt( 0.5 * (x_t + x_Euler), 0.5 * (y_t + y_Euler), optParm );
 
   return;
 }
 
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-// =   Standard Euler with adaptive stepsize
+// =   Standard Euler with an adaptive step size
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 void ode2dSolver_AdaptiveEuler( PFUNCD  pODE1dxdt          // IN        function pointers to the 2d coupled ODE system
                               , PFUNCD  pODE2dydt          // IN 
@@ -300,7 +290,7 @@ void ode2dSolver_AdaptiveEuler( PFUNCD  pODE1dxdt          // IN        function
                               , void*   optParm = NULL )   // IN / OUT  Optional parameters
 {
   float t        = 0;
-  float stepSize = h;   // initial stepsize, will be adjusted in every step
+  float stepSize = h;   // initial step size, will be adjusted in every step
   float x_interm = x_t;
   float y_interm = y_t;
 
@@ -345,8 +335,6 @@ void ode2dSolver_AdaptiveEuler( PFUNCD  pODE1dxdt          // IN        function
     count1++;
   }  while(!(( error_calculated < error_accepted ) || ( stepSize <= 0.001 )));
 
-  // if( stepSize < 0.001 ) stepSize = 0.001;
-
   while( t < h ) {
 
     x_interm = x_interm + stepSize * dvdt( x_interm, y_interm, optParm );
@@ -359,11 +347,9 @@ void ode2dSolver_AdaptiveEuler( PFUNCD  pODE1dxdt          // IN        function
 
     if( fSpike ) {
       printf( "[%8.3f]   > > > S P I K E < < <   +  %11.6f ms \n", simulationTime_ms, t );
-      // break;
     }
 
-//    t = roundf( t * 1000 ) / 1000;
-  }; 
+  };
 
   #if( 0 )
     printf( "[%8.3f]   V: %11.6f   U: %11.6f   stepSize: %11.6f   CNT(find stepSize): %6d   CNT(calc): %6d   CNT(total): %6d "

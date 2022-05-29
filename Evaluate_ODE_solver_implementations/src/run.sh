@@ -5,13 +5,13 @@ cmake CMakeLists.txt
 make clean
 make
 
-#./izhikevich -nRS -cstep150 -fsvg/RS_step150.svg -mstdEuler -msympEuler -mSpiNNaker -mEulerNEST -mIzhikevichNEST -mGSL -mHeun -mhighResEuler -madaptiveEuler
-#./izhikevich -nRS -cstep150 -fsvg/RS_step150.svg -mhighResEuler -mstdEuler
+./izhikevich -nRS -cstep150 -fsvg/RS_step150.svg -mstdEuler -msympEuler -mSpiNNaker -mEulerNEST -mIzhikevichNEST -mGSL -mHeun -mhighResEuler -madaptiveEuler
+# ./izhikevich -nRS -cstep150 -fsvg/RS_step150.svg -mhighResEuler -mstdEuler
 #./izhikevich -nRS -cstep150 -fsvg/RS_step150.svg -mhighResEuler -msympEuler
 #./izhikevich -nRS -cstep150 -fsvg/RS_step150.svg -mhighResEuler -mSpiNNaker
 #./izhikevich -nRS -cstep150 -fsvg/RS_step150.svg -mhighResEuler -mEulerNEST
 #./izhikevich -nRS -cstep150 -fsvg/RS_step150.svg -mhighResEuler -mIzhikevichNEST
-./izhikevich -nRS -cstep150 -fsvg/RS_step150.svg -mSpiNNaker -mGSL
+#./izhikevich -nRS -cstep150 -fsvg/RS_step150.svg -mSpiNNaker -mGSL
 #./izhikevich -nRS -cstep150 -fsvg/RS_step150.svg -mhighResEuler -madaptiveEuler
 #./izhikevich -nRS -cstep150 -fsvg/RS_step150.svg -mSpiNNaker
 #./izhikevich -nCH -cstep150 -fsvg/RS_step150.svg -mhighResEuler -madaptiveEuler -mGSL

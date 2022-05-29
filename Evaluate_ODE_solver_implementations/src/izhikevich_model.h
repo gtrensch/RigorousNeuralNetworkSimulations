@@ -1,9 +1,7 @@
 /*
  *  izhikevich_model.h
  *
- *  This file is part of the Izhikevich console application.
- *
- *  Copyright (C) 2016, Author: Guido Trensch
+ *  Copyright (C) 2016, G. Trensch, Forschungszentrum Jülich, JSC, Simulation & Data Laboratory Neuroscience
  *
  *  The Izhikevich console application is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

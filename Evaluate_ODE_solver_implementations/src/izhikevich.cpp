@@ -1,9 +1,7 @@
 /*
  *  izhikevich.cpp
  *
- *  This file is part of the Izhikevich console application.
- *
- *  Copyright (C) 2016, Author: Guido Trensch
+ *  Copyright (C) 2016, G. Trensch, Forschungszentrum Jülich, JSC, Simulation & Data Laboratory Neuroscience
  *
  *  The Izhikevich console application is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,14 +18,17 @@
  *
  */
 
-// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-// =   IZHIKEVICH MODEL
-// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-// =
-// =   compile with:
-// =   g++ main.cpp -o izhikevich -I/usr/include/plplot  -lplplotcxxd  -lplplotd
-// =
-// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
+//  Comparison of different ODE solver implementations for solving the dynamics of the
+//  Izhikevich neuron model [1].
+//
+//  References:
+//
+//  [1] Izhikevich, E. M. (2003). Simple model of spiking neurons. Trans. Neur. Netw. 14, 1569–1572.
+//      doi:10.1109/TNN.2003.820440
+//
+// + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
+
 
 #include <plstream.h>
 #include <iostream>
@@ -47,7 +48,7 @@
 #define SIMULATION_TIME                    (float)(600.0)    // in milliseconds
 #define INTEGRATION_STEP_SIZE              (float)(1.000)    // in milliseconds
 #define HIGHRES_INTEGRATION_STEP_SIZE      (float)(0.001)    // in milliseconds
-#define PLOT_SHIFT                         (float)(0.000)    // shift plot for debug, e.g. 5.0
+#define PLOT_SHIFT                         (float)(0.000)    // shift plot for debug, e.g., 5.0
 
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -89,18 +90,16 @@ int main (int argc, char** argv)
   processMainArguments( pCntxt, argc, argv );
   initializePlot( pCntxt, &pPlStream );
   
-  // PERFORM STANDARD EULER
+  // Explicit Forward Euler
   if( pCntxt->args.fOdeSolverStandardEuler ) { 
     PRINT_DEBUG( "    Debug: + + + perform standard Euler + + +\n" );
     initializeSimulation( pCntxt, SIMULATION_TIME, INTEGRATION_STEP_SIZE, &pTimesArray, &pVoltagesArray, &pFrequencyArray, &pCurrentArray );
     numDataPoints = runSimulation( pCntxt, STANDARD_EULER, SIMULATION_TIME, INTEGRATION_STEP_SIZE, pTimesArray, pVoltagesArray, pFrequencyArray, pCurrentArray );
-    // ***GTR print frequency
-    // drawGraph( pCntxt, pPlStream, numDataPoints, pTimesArray, pFrequencyArray, PLOT_COLOR_RED, PLOT_LINE_FULL, STR_ODE_SOLVER_METHOD_STANDARD_EULER );
     drawGraph( pCntxt, pPlStream, numDataPoints, pTimesArray, pVoltagesArray, PLOT_COLOR_RED, PLOT_LINE_FULL, STR_ODE_SOLVER_METHOD_STANDARD_EULER );
     finalizeSimulation( pCntxt, pTimesArray, pVoltagesArray, pCurrentArray );
   }
 
-  // PERFORM SYMPLECTIC EULER
+  // Symplectic Forward Euler
   if( pCntxt->args.fOdeSolverSymplecticEuler ) {
     PRINT_DEBUG( "    Debug: + + + symplectic Euler + + +\n" );
     initializeSimulation( pCntxt, SIMULATION_TIME, INTEGRATION_STEP_SIZE, &pTimesArray, &pVoltagesArray, &pFrequencyArray, &pCurrentArray );
@@ -109,7 +108,7 @@ int main (int argc, char** argv)
     finalizeSimulation( pCntxt, pTimesArray, pVoltagesArray, pCurrentArray );
   }    
 
-  // PERFORM EXPLICIT EULER SPINNAKER
+  // SpiNNaker implementation
   if( pCntxt->args.fOdeSolverEulerSpiNNaker ) {
     PRINT_DEBUG( "    Debug: + + + perform explicit Euler - SpiNNaker implementation + + +\n" );
     initializeSimulation( pCntxt, SIMULATION_TIME, INTEGRATION_STEP_SIZE, &pTimesArray, &pVoltagesArray, &pFrequencyArray, &pCurrentArray );
@@ -118,7 +117,7 @@ int main (int argc, char** argv)
     finalizeSimulation( pCntxt, pTimesArray, pVoltagesArray, pCurrentArray );
   }
 
-  // EXPLICIT EULER NEST
+  // NEST implementation
   if( pCntxt->args.fOdeSolverEulerNEST ) {
     PRINT_DEBUG( "    Debug: + + + explicit Euler - NEST implementation + + +\n" );  
     initializeSimulation( pCntxt, SIMULATION_TIME, INTEGRATION_STEP_SIZE, &pTimesArray, &pVoltagesArray, &pFrequencyArray, &pCurrentArray );
@@ -127,7 +126,7 @@ int main (int argc, char** argv)
     finalizeSimulation( pCntxt, pTimesArray, pVoltagesArray, pCurrentArray );
   }
 
-  // EXPLICIT IZHIKEVICH NUMERICS NEST
+  // Original Izhikevich implementation
   if( pCntxt->args.fOdeSolverIzhikevichNEST ) {
     PRINT_DEBUG( "    Debug: + + + explicit Izhikevich numerics - NEST implementation + + +\n" );
     initializeSimulation( pCntxt, SIMULATION_TIME, INTEGRATION_STEP_SIZE, &pTimesArray, &pVoltagesArray, &pFrequencyArray, &pCurrentArray );
@@ -136,7 +135,7 @@ int main (int argc, char** argv)
     finalizeSimulation( pCntxt, pTimesArray, pVoltagesArray, pCurrentArray );
   }
  
-  // GSL library
+  // GSL library, rkf45
   if( pCntxt->args.fOdeSolverGSL ) {
     PRINT_DEBUG( "    Debug: + + + GSL library + + +\n" );
     initializeSimulation( pCntxt, SIMULATION_TIME, INTEGRATION_STEP_SIZE, &pTimesArray, &pVoltagesArray, &pFrequencyArray, &pCurrentArray );
@@ -154,7 +153,7 @@ int main (int argc, char** argv)
     finalizeSimulation( pCntxt, pTimesArray, pVoltagesArray, pCurrentArray );
   }
 
-  // Euler with adaptive stepsize
+  // Adaptive Euler
   if( pCntxt->args.fOdeSolverAdaptiveEuler ) { 
     PRINT_DEBUG( "    Debug: + + + perform adaptive Euler + + +\n" );
     initializeSimulation( pCntxt, SIMULATION_TIME, INTEGRATION_STEP_SIZE, &pTimesArray, &pVoltagesArray, &pFrequencyArray, &pCurrentArray );
@@ -163,7 +162,7 @@ int main (int argc, char** argv)
     finalizeSimulation( pCntxt, pTimesArray, pVoltagesArray, pCurrentArray );
   }
 
-  // HIGH RESOLUTION REFERENCE USING STANDARD EULER
+  // High resolution Euler
   if( pCntxt->args.fOdeSolverHighResolutionEuler ) {
     PRINT_DEBUG( "    Debug: + + + reference high resolution standard Euler + + +\n" );
     initializeSimulation( pCntxt, SIMULATION_TIME, HIGHRES_INTEGRATION_STEP_SIZE, &pTimesArray, &pVoltagesArray, &pFrequencyArray, &pCurrentArray );
@@ -184,8 +183,8 @@ int main (int argc, char** argv)
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-//   Plot graph, i.e. write to svg file
-//   Multiple graphs can be plotted and overlayed
+//   Plot graph, write to svg file.
+//   Multiple graphs can be plotted and overlaid.
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 void drawGraph( CNTXT* pCntxt, plstream* pPlStream, int numDataPoints, PLFLT* pTimesArray, PLFLT* pVoltagesArray, int plot_color, int plot_line_style, char* pLegendText )
 {
@@ -199,7 +198,7 @@ void drawGraph( CNTXT* pCntxt, plstream* pPlStream, int numDataPoints, PLFLT* pT
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
-//   Free program context area and exit the program
+//   Free program context area and exit
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 void exitProgram( CNTXT* pCntxt )
 {
@@ -209,7 +208,7 @@ void exitProgram( CNTXT* pCntxt )
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
-//   Free program context area
+//   Free program context area.
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 void finalizeContext( CNTXT* pCntxt )
 {
@@ -241,7 +240,7 @@ void finalizeSimulation( CNTXT* pCntxt, PLFLT* pTimesArray, PLFLT* pVoltagesArra
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
-//   Allocate and initialize the program's context area.
+//   Allocate and initialize the program's context area
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 void initializeContext( CNTXT** ppCntxt )
 {
@@ -256,7 +255,7 @@ void initializeContext( CNTXT** ppCntxt )
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
-//   Set up Plplot
+//   Set up Plplot.
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 void initializePlot( CNTXT* pCntxt, plstream** pPlStream )
 {
@@ -330,7 +329,7 @@ void initializeSimulation( CNTXT* pCntxt, float simulationTime, float integratio
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
 //   Depending on parameter "method", call the corresponding ODE solver and
-//   perform the simulation 
+//   perform the simulation.
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
 int runSimulation( CNTXT* pCntxt, ENUM_ODESOLVER_METHOD method, float simulationTime, float integrationStepSize
                  , PLFLT* pTimesArray, PLFLT* pVoltagesArray, PLFLT* pFrequencyArray, float* pCurrentArray )
@@ -570,7 +569,7 @@ void processMainArguments( CNTXT* pCntxt, int argc, char** argv )
     }
   }
 
-  // some parameter checks
+  // parameter checks
 
   if( pCntxt->args.currentShape == 0 ) {
     printf( "ERROR: option -c not set\n" );
@@ -684,7 +683,7 @@ void processOPT_C( CNTXT* pCntxt, int argc, char** argv )
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
-//   Set the svg output file name
+//   Set svg output file name
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
 void processOPT_F( CNTXT* pCntxt, int argc, char** argv )
 {
