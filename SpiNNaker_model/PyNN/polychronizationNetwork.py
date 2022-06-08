@@ -255,7 +255,7 @@ for cycle in range( SIM_CYCLES ):
               , Panel(spikesExcPop.segments[0].spiketrains
               , xticks = True, yticks = True, markersize = 2.0, xlim = (simStartTime, simEndTime), xlabel = "Time [ms]")
 
-              , title="Plochronization Network", annotations="Simulated with {}".format(sim.name())
+              , title="Polychronization Network", annotations="Simulated with {}".format(sim.name())
               )
 
         plt.pause(0.1)
