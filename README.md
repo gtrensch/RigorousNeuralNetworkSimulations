@@ -9,7 +9,7 @@ This repository contains the C/C++ source codes, PyNN and PyNEST scripts develop
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1435026.svg)](https://doi.org/10.5281/zenodo.1435026) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1435831.svg)](https://doi.org/10.5281/zenodo.1435831)
 
-*Trensch, G., and Morrison, A. (2022). A System-on-Chip Based Hybrid Neuromorphic Compute Node Architecture for Reproducible Hyper-Real-Time Simulations of Spiking Neural Networks. Frontiers in Neuroinformatics 16:884033.doi: 10.3389/fninf.2022.884033* [unpublished]
+*Trensch, G., and Morrison, A. (2022). A System-on-Chip Based Hybrid Neuromorphic Compute Node Architecture for Reproducible Hyper-Real-Time Simulations of Spiking Neural Networks. [Frontiers in Neuroinformatics 16:884033.doi: 10.3389/fninf.2022.884033](https://www.frontiersin.org/articles/10.3389/fninf.2022.884033/full)*
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6591552.svg)](https://doi.org/10.5281/zenodo.6591552)
 
