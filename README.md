@@ -26,7 +26,7 @@ The model was also used to perform benchmarking tasks.
 
 ## Two-Population Izhikevich Model ##
 
-The Izhikevich neuron model was originally published in [[2]](#2) and the two-population network model in [[3]](#3). The tables (Tab. 1, 2) below summarize the properties and parameters of the network, following the proposed methods described in [[4]](#4) and [[6]](#6). In order to avoid the occurrence of simulation artifacts, the temporal resolution of the simulation is set to 0.1 ms. This is a 10 times smaller value than used by the original implementation [[3]](#3). See also [[5]](#5), in which the reproducibility of two-population Izhikevich network model was evaluated using the NEST simulator.
+The Izhikevich neuron model was originally published in [[2]](#2) and the two-population network model in [[3]](#3). The tables (Tab. 1, 2) below summarize the properties and parameters of the network, following the proposed methods described in [[4]](#4) and [[6]](#6). In order to avoid the occurrence of simulation artifacts, the temporal resolution of the simulation is set to 0.1 ms. This is a 10 times smaller value than used by the original implementation [[3]](#3). See also [[5]](#5), in which the reproducibility of the two-population Izhikevich network model was evaluated using the NEST simulator.
 
 <img src="figures/table01.png" alt="drawing" width="700"/>
 <img src="figures/table02.png" alt="drawing" width="700"/>
